@@ -50,8 +50,7 @@ defmodule Veritaserum do
     input
     |> clean
     |> String.split()
-    |> mark_list
-    |> Enum.reverse()
+    |> Enum.map(&mark_word/1)
   end
 
   defp mark_word(word) do
@@ -61,16 +60,6 @@ defmodule Veritaserum do
          {_, nil, _} <- {:word, Evaluator.evaluate_word(word), word},
          do: {:neutral, 0, word}
   end
-
-  defp mark_list([head | tail]) do
-    mark_list(tail, [mark_word(head)])
-  end
-
-  defp mark_list([head | tail], result) do
-    mark_list(tail, [mark_word(head) | result])
-  end
-
-  defp mark_list([], result), do: result
 
   defp analyze_mark({type, score, _}) do
     case type do
