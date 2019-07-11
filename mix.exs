@@ -61,9 +61,7 @@ defmodule Veritaserum.Mixfile do
   end
 
   defp aliases do
-    [
-      test: "test --cover"
-    ]
+    []
   end
 
   defp github do

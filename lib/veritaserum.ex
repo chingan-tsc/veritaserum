@@ -68,7 +68,7 @@ defmodule Veritaserum do
   defp mark_word(word, lang) do
     with {_, nil, _} <- {:negator, Evaluator.evaluate_negator(word, lang), word},
          {_, nil, _} <- {:booster, Evaluator.evaluate_booster(word, lang), word},
-         {_, nil, _} <- {:emoticon, Evaluator.evaluate_emoticon(word, lang), word},
+         {_, nil, _} <- {:emoticon, Evaluator.evaluate_emoticon(word), word},
          {_, nil, _} <- {:word, Evaluator.evaluate_word(word, lang), word},
          do: {:neutral, 0, word}
   end
