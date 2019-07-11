@@ -28,7 +28,12 @@ defmodule Veritaserum do
   """
   @spec analyze(String.t(), return: :score_and_marks) :: {number(), [{atom, number, String.t()}]}
   def analyze(input, return: :score_and_marks) do
-    list_with_marks = get_list_with_marks(input)
+    list_with_marks =
+      input
+      |> clean
+      |> String.split()
+      |> Enum.map(&mark_word/1)
+
     score = get_score(list_with_marks)
 
     {score, list_with_marks}
@@ -42,17 +47,26 @@ defmodule Veritaserum do
 
   defp get_score(words) do
     words
-    |> analyze_list
+    |> Stream.chunk_every(2, 1)
+    |> Stream.map(fn pair ->
+      case pair do
+        [{:negator, _, _}, {:word, score, _}] ->
+          -score
+
+        [{:booster, booster_score, _}, {:word, word_score, _}] ->
+          if word_score > 0, do: word_score + booster_score, else: word_score - booster_score
+
+        [_, {type, score, _}] when type in [:word, :emoticon] ->
+          score
+
+        _ ->
+          0
+      end
+    end)
     |> Enum.sum()
   end
 
-  defp get_list_with_marks(input) do
-    input
-    |> clean
-    |> String.split()
-    |> Enum.map(&mark_word/1)
-  end
-
+  # Mark every word in the input with type and score
   defp mark_word(word) do
     with {_, nil, _} <- {:negator, Evaluator.evaluate_negator(word), word},
          {_, nil, _} <- {:booster, Evaluator.evaluate_booster(word), word},
@@ -61,41 +75,7 @@ defmodule Veritaserum do
          do: {:neutral, 0, word}
   end
 
-  defp analyze_mark({type, score, _}) do
-    case type do
-      :word -> score
-      :emoticon -> score
-      _ -> 0
-    end
-  end
-
-  defp analyze_mark(mark, previous) do
-    case previous do
-      {:negator, _, _} ->
-        -analyze_mark(mark)
-
-      {:booster, booster_value, _} ->
-        analyze_mark(mark) |> apply_booster(booster_value)
-
-      _ ->
-        analyze_mark(mark)
-    end
-  end
-
-  defp analyze_list([head | tail]) do
-    analyze_list(tail, head, [analyze_mark(head)])
-  end
-
-  defp analyze_list([head | tail], previous, result) do
-    analyze_list(tail, head, [analyze_mark(head, previous) | result])
-  end
-
-  defp analyze_list([], _, result), do: result
-
-  defp apply_booster(word_value, booster) when word_value > 0, do: word_value + booster
-  defp apply_booster(word_value, booster) when word_value < 0, do: word_value - booster
-  defp apply_booster(word_value, _booster), do: word_value
-
+  # Clean and sanitize the input text
   defp clean(text) do
     text
     |> String.replace(~r/\n/, " ")
