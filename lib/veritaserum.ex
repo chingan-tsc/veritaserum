@@ -11,7 +11,9 @@ defmodule Veritaserum do
   alias Veritaserum.Evaluator
 
   @doc """
-  Returns a sentiment value for the given text
+  Returns the sentiment value for the given text.
+
+  `lang` can be used to specify the language of the text (currently only English is supported)
 
       iex> Veritaserum.analyze(["I ❤️ Veritaserum", "Veritaserum is really awesome"])
       [3, 5]
@@ -19,45 +21,55 @@ defmodule Veritaserum do
       iex> Veritaserum.analyze("I love Veritaserum")
       3
   """
-  @spec analyze(list(String.t()) | String.t()) :: list(integer) | integer
-  def analyze(input) when is_list(input) do
+  @spec analyze(String.t() | list(String.t()), String.t()) :: integer | list(integer)
+  def analyze(input, lang \\ "en")
+
+  def analyze(input, lang) when is_list(input) do
+    Enum.map(input, &analyze(&1, lang))
+  end
+
+  def analyze(input, lang) when is_bitstring(input) do
     input
-    |> Stream.map(&analyze/1)
-    |> Enum.to_list()
+    |> clean
+    |> String.split()
+    |> Enum.map(&mark_word(&1, lang))
+    |> get_score()
   end
 
-  def analyze(input) do
-    {score, _} = analyze(input, return: :score_and_marks)
-
-    score
-  end
+  def analyze(_, _), do: :invalid_input
 
   @doc """
-  Returns a tuple of the sentiment value and the metadata for the given text
+  Returns a tuple of the sentiment value and the metadata for the given text.
 
-      iex> Veritaserum.analyze("I love Veritaserum", return: :score_and_marks)
+  `lang` can be used to specify the language of the text (currently only English is supported)
+
+      iex> Veritaserum.analyze_with_metadata("I love Veritaserum")
       {3, [{:neutral, 0, "i"}, {:word, 3, "love"}, {:neutral, 0, "veritaserum"}]}
       
   """
-  @spec analyze(String.t(), return: :score_and_marks) :: {number(), [{atom, number, String.t()}]}
-  def analyze(input, return: :score_and_marks) do
+  @spec analyze_with_metadata(String.t(), String.t()) :: {number(), [{atom, number, String.t()}]}
+  def analyze_with_metadata(input, lang \\ "en")
+
+  def analyze_with_metadata(input, lang) when is_bitstring(input) do
     list_with_marks =
       input
       |> clean
       |> String.split()
-      |> Enum.map(&mark_word/1)
+      |> Enum.map(&mark_word(&1, lang))
 
     score = get_score(list_with_marks)
 
     {score, list_with_marks}
   end
 
+  def analyze_with_metadata(_, _), do: :invalid_input
+
   # Mark every word in the input with type and score
-  defp mark_word(word) do
-    with {_, nil, _} <- {:negator, Evaluator.evaluate_negator(word), word},
-         {_, nil, _} <- {:booster, Evaluator.evaluate_booster(word), word},
-         {_, nil, _} <- {:emoticon, Evaluator.evaluate_emoticon(word), word},
-         {_, nil, _} <- {:word, Evaluator.evaluate_word(word), word},
+  defp mark_word(word, lang) do
+    with {_, nil, _} <- {:negator, Evaluator.evaluate_negator(word, lang), word},
+         {_, nil, _} <- {:booster, Evaluator.evaluate_booster(word, lang), word},
+         {_, nil, _} <- {:emoticon, Evaluator.evaluate_emoticon(word, lang), word},
+         {_, nil, _} <- {:word, Evaluator.evaluate_word(word, lang), word},
          do: {:neutral, 0, word}
   end
 

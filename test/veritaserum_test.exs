@@ -44,7 +44,7 @@ defmodule VeritaserumTest do
            {:neutral, 0, "you?"}
          ]}
 
-      assert ^result = analyze(@text, return: :score_and_marks)
+      assert ^result = analyze_with_metadata(@text)
     end
   end
 
