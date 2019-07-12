@@ -75,7 +75,7 @@ defmodule Veritaserum do
 
   # Compute the score from a list of marked words
   defp get_score(words) do
-    words
+    [hd(words) | words]
     |> Stream.chunk_every(2, 1)
     |> Stream.map(fn pair ->
       case pair do
