@@ -17,6 +17,20 @@ defmodule VeritaserumTest do
     end
   end
 
+  describe "when text has relevant word" do
+    test "calculates sentimental value" do
+      en_text = "I love Veritaserum"
+
+      assert analyze(en_text) == 3
+    end
+
+    test "calculates sentimental value for the specified language" do
+      pt_text = "eu favores veritaserum"
+
+      assert analyze(pt_text, "pt") == 2
+    end
+  end
+
   describe "when text has no relevant word" do
     @text "I build Veritaserum"
 
@@ -25,15 +39,15 @@ defmodule VeritaserumTest do
     end
   end
 
-  describe "when text has relevant word" do
-    @text "I love Veritaserum"
+  describe "when language is not supported" do
+    @text "amo il veritaserum"
 
-    test "calculates sentimental value" do
-      assert analyze(@text) == 3
+    test "sentiment value is nil" do
+      assert analyze(@text, "it") == nil
     end
   end
 
-  describe "when return option is :score_and_marks" do
+  describe "when using analyze_with_metadata" do
     @text "You really love Veritaserum. Don't you?"
 
     test "returns score with marks" do

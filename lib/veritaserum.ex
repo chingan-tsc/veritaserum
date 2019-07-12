@@ -35,11 +35,11 @@ defmodule Veritaserum do
   @spec analyze(String.t() | list(String.t()), String.t()) :: integer | list(integer)
   def analyze(input, lang \\ "en")
 
-  def analyze(input, lang) when is_list(input) do
+  def analyze(input, lang) when is_list(input) and lang in @supported_languages do
     Enum.map(input, &analyze(&1, lang))
   end
 
-  def analyze(input, lang) when is_bitstring(input) do
+  def analyze(input, lang) when is_bitstring(input) and lang in @supported_languages do
     input
     |> clean
     |> String.split()
@@ -47,7 +47,7 @@ defmodule Veritaserum do
     |> get_score()
   end
 
-  def analyze(_, _), do: :invalid_input
+  def analyze(_, _), do: nil
 
   @doc """
   Returns a tuple of the sentiment value and the metadata for the given text.
@@ -61,7 +61,8 @@ defmodule Veritaserum do
   @spec analyze_with_metadata(String.t(), String.t()) :: {number(), [{atom, number, String.t()}]}
   def analyze_with_metadata(input, lang \\ "en")
 
-  def analyze_with_metadata(input, lang) when is_bitstring(input) do
+  def analyze_with_metadata(input, lang)
+      when is_bitstring(input) and lang in @supported_languages do
     list_with_marks =
       input
       |> clean
@@ -73,7 +74,7 @@ defmodule Veritaserum do
     {score, list_with_marks}
   end
 
-  def analyze_with_metadata(_, _), do: :invalid_input
+  def analyze_with_metadata(_, _), do: nil
 
   # Mark every word in the input with type and score
   defp mark_word(word, lang) do
