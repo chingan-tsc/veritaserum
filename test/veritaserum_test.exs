@@ -5,6 +5,10 @@ defmodule VeritaserumTest do
 
   import Veritaserum
 
+  test "returns the list of supported languages" do
+    assert supported_languages() == ["pt", "en"]
+  end
+
   describe "when given a list" do
     @list ["I love Veritaserum", "I hate nothing"]
 

@@ -10,6 +10,17 @@ defmodule Veritaserum do
 
   alias Veritaserum.Evaluator
 
+  @supported_languages ["pt", "en"]
+
+  @doc """
+  Returns the list of supported languages.
+
+      iex> Veritaserum.supported_languages()
+      ["pt", "en"]
+  """
+  @spec supported_languages() :: list(String.t())
+  def supported_languages(), do: @supported_languages
+
   @doc """
   Returns the sentiment value for the given text.
 
