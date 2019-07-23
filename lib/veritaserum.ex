@@ -10,13 +10,13 @@ defmodule Veritaserum do
 
   alias Veritaserum.Evaluator
 
-  @supported_languages ["pt", "en"]
+  @supported_languages ["pt", "es", "en"]
 
   @doc """
   Returns the list of supported languages.
 
       iex> Veritaserum.supported_languages()
-      ["pt", "en"]
+      ["pt", "es", "en"]
   """
   @spec supported_languages() :: list(String.t())
   def supported_languages(), do: @supported_languages
