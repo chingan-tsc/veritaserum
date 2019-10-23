@@ -113,7 +113,7 @@ defmodule Veritaserum do
     |> String.replace(~r/\n/, " ")
     |> String.downcase()
     |> String.replace(~r/[.,\/#!$%\^&\*;:{}=_`\"~()]/, " ")
-    |> String.replace(Evaluator.emoticon_list(), "  ", insert_replaced: 1)
+    |> String.replace(Evaluator.emoticon_list(), fn match -> " #{match} " end)
     |> String.replace(~r/ {2,}/, " ")
   end
 end
