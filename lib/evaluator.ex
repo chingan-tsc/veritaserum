@@ -6,7 +6,7 @@ defmodule Veritaserum.Evaluator do
   # Builds the evaluator for language-specific facets (words, boosters and negators)
   Veritaserum.supported_languages()
   |> Enum.each(fn lang ->
-    ["word", "negator", "booster"]
+    ["word", "negator", "booster", "custom_word", "custom_negator", "custom_booster"]
     |> Enum.each(fn facet ->
       wordlist =
         "#{__DIR__}/../config/facets/#{lang}/#{facet}.json"
