@@ -45,6 +45,7 @@ defmodule Veritaserum do
     |> String.split()
     |> Enum.map(&mark_word(&1, lang))
     |> get_score()
+    |> round()
   end
 
   def analyze(_, _), do: nil
@@ -90,6 +91,7 @@ defmodule Veritaserum do
     [List.first(words) | words]
     |> Stream.chunk_every(2, 1)
     |> Stream.map(fn pair ->
+      # TODO Complety rethink this to allow higher proximity between boosters/negators and the words
       case pair do
         [{:negator, _, _}, {:word, score, _}] ->
           -score
