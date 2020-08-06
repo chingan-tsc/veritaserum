@@ -111,11 +111,20 @@ defmodule Veritaserum do
 
   # Clean and sanitize the input text
   defp clean(text) do
-    text
-    |> String.replace(~r/\n/, " ")
-    |> String.downcase()
-    |> String.replace(~r/[.,\/#!$%\^&\*;:{}=_`\"~()]/, " ")
-    |> String.replace(Evaluator.emoticon_list(), fn match -> " #{match} " end)
+    # Returns the major version of Elixir, i.e. 8 for version 1.8.x
+    ver = System.version() |> String.split(".") |> Enum.at(1) |> String.to_integer()
+
+    cleaned_text =
+      text
+      |> String.replace(~r/\n/, " ")
+      |> String.downcase()
+      |> String.replace(~r/[.,\/#!$%\^&\*;:{}=_`\"~()]/, " ")
+
+    if ver >= 9 do
+      String.replace(cleaned_text, Evaluator.emoticon_list(), fn match -> " #{match} " end)
+    else
+      String.replace(cleaned_text, Evaluator.emoticon_list(), "  ", insert_replaced: 1)
+    end
     |> String.replace(~r/ {2,}/, " ")
   end
 end
