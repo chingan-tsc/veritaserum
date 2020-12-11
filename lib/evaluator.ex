@@ -1,57 +1,61 @@
 defmodule Veritaserum.Evaluator do
   @moduledoc """
-  Evaluats words, boosters, negators and emoticons.
+  Evaluates words, boosters, negators and emoticons.
   """
 
-  # Builds the evaluator for language-specific facets (words, boosters and negators)
+  @words %{
+    "en" => Veritaserum.Builder.get("en", "word"),
+    "es" => Veritaserum.Builder.get("es", "word"),
+    "pt" => Veritaserum.Builder.get("pt", "word")
+  }
+
+  @negators %{
+    "en" => Veritaserum.Builder.get("en", "negator"),
+    "es" => Veritaserum.Builder.get("es", "negator"),
+    "pt" => Veritaserum.Builder.get("pt", "negator")
+  }
+
+  @boosters %{
+    "en" => Veritaserum.Builder.get("en", "booster"),
+    "es" => Veritaserum.Builder.get("es", "booster"),
+    "pt" => Veritaserum.Builder.get("pt", "booster")
+  }
+
+  @emoticons "#{__DIR__}/../config/facets/emoticon.json"
+             |> File.read!()
+             |> Jason.decode!()
+
   Veritaserum.supported_languages()
   |> Enum.each(fn lang ->
-    ["word", "negator", "booster"]
-    |> Enum.each(fn facet ->
-      original_wordlist =
-        "#{__DIR__}/../config/facets/#{lang}/#{facet}.json"
-        |> File.read!()
-        |> Jason.decode!()
+    @doc """
+    Lists all the words in the specified language
 
-      wordlist =
-        with loc when is_bitstring(loc) <-
-               Application.get_env(:veritaserum, :"custom_#{lang}_#{facet}") do
-          loc
-          |> File.read!()
-          |> Jason.decode!()
-          |> Map.merge(original_wordlist)
-        else
-          _ -> original_wordlist
-        end
+        iex> Veritaserum.Evaluator.word_list("en")
+        ["hi", ...]
+    """
+    def word_list(unquote(lang)) do
+      Map.get(@words, unquote(lang), %{})
+      |> Map.keys()
+    end
 
-      @doc """
-      Lists all the words in the #{facet} facet for the specified language.
+    def evaluate_word(word, unquote(lang)) do
+      Map.get(@words, unquote(lang), %{})
+      |> Map.get(word, nil)
+    end
 
-          iex> Veritaserum.Evaluator.#{facet}_list("#{lang}")
-          ["#{facet}_word", ...]
-      """
-      def unquote(:"#{facet}_list")(unquote(lang)),
-        do: unquote(Map.keys(wordlist))
+    def evaluate_negator(word, unquote(lang)) do
+      Map.get(@negators, unquote(lang), %{})
+      |> Map.get(word, nil)
+    end
 
-      Enum.each(wordlist, fn {word, score} ->
-        @doc """
-        Evaluates if a word/emoji is a **#{facet}** and returns the associated score.
-
-            iex> Veritaserum.Evaluator.evaluate_#{facet}("#{word}", "#{lang}")
-            #{score}
-        """
-        def unquote(:"evaluate_#{facet}")(unquote(word), unquote(lang)), do: unquote(score)
-      end)
-
-      def unquote(:"evaluate_#{facet}")(_, unquote(lang)), do: nil
-    end)
+    def evaluate_booster(word, unquote(lang)) do
+      Map.get(@boosters, unquote(lang), %{})
+      |> Map.get(word, nil)
+    end
   end)
 
-  # Builds the evaluator for language-agnostic facets (emoticon)
-  emoticons =
-    "#{__DIR__}/../config/facets/emoticon.json"
-    |> File.read!()
-    |> Jason.decode!()
+  def word_list(_), do: []
+  def evaluate_word(_, _), do: nil
 
   @doc """
   Lists all the supported emojis.
@@ -60,17 +64,9 @@ defmodule Veritaserum.Evaluator do
       ["😍", ...]
   """
   def unquote(:emoticon_list)(),
-    do: unquote(Map.keys(emoticons))
+    do: unquote(Map.keys(@emoticons))
 
-  Enum.each(emoticons, fn {emoji, score} ->
-    @doc """
-    Evaluates if a word/emoji is a **emoticon** and returns the associated score.
-
-        iex> Veritaserum.Evaluator.evaluate_emoticon("#{emoji}")
-        #{score}
-    """
-    def unquote(:evaluate_emoticon)(unquote(emoji)), do: unquote(score)
-  end)
-
-  def unquote(:evaluate_emoticon)(_), do: nil
+  def evaluate_emoticon(word) do
+    Map.get(@emoticons, word, nil)
+  end
 end
