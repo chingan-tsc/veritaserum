@@ -63,8 +63,9 @@ defmodule Veritaserum.Evaluator do
       iex> Veritaserum.Evaluator.emoticon_list()
       ["😍", ...]
   """
-  def unquote(:emoticon_list)(),
-    do: unquote(Map.keys(@emoticons))
+  def emoticon_list() do
+    Map.keys(@emoticons)
+  end
 
   def evaluate_emoticon(word) do
     Map.get(@emoticons, word, nil)
